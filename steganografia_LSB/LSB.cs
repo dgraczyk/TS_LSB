@@ -55,10 +55,10 @@ namespace steganografia_LSB
             bool isMsg = false;
             int textLength = 0;
 
+            var tmp = new StringBuilder();
+
             for (int y = 0; y < bitmap.Height; y++)
             {
-                var tmp = new StringBuilder();
-
                 for (int x = 0; x < bitmap.Width; x++)
                 {
                     var pixel = bitmap.GetPixel(x, y);
