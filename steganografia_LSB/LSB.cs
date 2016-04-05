@@ -24,7 +24,7 @@ namespace steganografia_LSB
                 {
                     var pixel = bitmap.GetPixel(x, y);
 
-                    var R = (j == 8) ? 254 : pixel.R & 254 | +BitHelper.GetBit(encode[i], --j);
+                    var R = (j == 8) ? pixel.R & 254 : pixel.R & 254 | +BitHelper.GetBit(encode[i], --j);
 
                     var G = pixel.G & 254 | +BitHelper.GetBit(encode[i], --j);
 
@@ -71,15 +71,27 @@ namespace steganografia_LSB
 
                     if (tmp.Length == 9)
                     {
-                        information.Append(BitHelper.GetString(new[] {Convert.ToByte(tmp.ToString(), 2)}));
-
-                        if (!isMsg && Convert.ToByte(tmp.ToString(), 2) == 32)
+                        try
                         {
-                            isMsg = true;
-                            textLength = Int32.Parse(information.ToString());
-                            information.Clear();
+                            information.Append(BitHelper.GetString(new[] { Convert.ToByte(tmp.ToString(), 2) }));
+
+                            if (!isMsg && Convert.ToByte(tmp.ToString(), 2) == 32)
+                            {
+                                isMsg = true;
+                                textLength = Int32.Parse(information.ToString());
+                                information.Clear();
+                            }
+                            tmp.Clear();
                         }
-                        tmp.Clear();
+                        catch (Exception)
+                        {
+                            // Break on excpetion
+                            isMsg = true;
+                            information.Length = textLength;
+
+                            information.Clear();
+                            information.Append("Error during decoding. Be sure that you have correct image");
+                        }
                     }
 
                     if (isMsg && information.Length >= textLength)
