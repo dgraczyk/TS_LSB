@@ -14,15 +14,21 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="100"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBox TextWrapping="Wrap"  AcceptsReturn="True"  Name="Information" HorizontalAlignment="Stretch" MinWidth="300" MaxWidth="300" Margin="10,25,0,0" Grid.Column="0" Grid.Row="0" >  </TextBox>
-            <Button Grid.Column="1" Grid.Row="0" Click="Insert_OnClick" Name="Insert" Content="Insert" Margin="20,25,0,0" MinWidth="100" Height="40" VerticalAlignment="Center" ></Button>
-            <Image Grid.Column="0" Grid.Row="1" MaxWidth="500" MaxHeight="500" Name="ImageBefore" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" ></Image>
-            <Image Grid.Column="1" Grid.Row="1" MaxWidth="500" MaxHeight="500" Name="ImageAfter" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" ></Image>
+            <StackPanel Grid.Row="0" Grid.Column="0">
+                <TextBox TextWrapping="Wrap"  AcceptsReturn="True"  Name="Information" HorizontalAlignment="Stretch" MinWidth="300" MinHeight="120" MaxWidth="300" Margin="10,25,10,0" ></TextBox>
+                <Label Content="Hasło"  HorizontalAlignment="Left" Margin="10,15" />
+                <TextBox  Name="Password" HorizontalAlignment="Left" Height="50"  TextWrapping="Wrap"   MinWidth="300" MaxWidth="300" Margin="10,0,10,0"/>
+                <Button Click="Insert_OnClick" Name="Insert" Content="Insert" Margin="10,25,10,0" MinWidth="100" Height="34" VerticalAlignment="Center" ></Button>
+            </StackPanel>
+            <Image Grid.Column="1" Grid.Row="0" MaxWidth="500" MaxHeight="500" Name="ImageBefore" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" ></Image>
+            <Image Grid.Column="2" Grid.Row="0" MaxWidth="500" MaxHeight="500" Name="ImageAfter" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" ></Image>
+            
+            
         </Grid>
     </Grid>
 </Window>

@@ -22,5 +22,10 @@ namespace steganografia_LSB
         {
             return Encoding.ASCII.GetString(array);
         }
+
+        public static byte[] JoinArrayBytes(byte[] firts, byte[] second)
+        {
+            return firts.Concat(second).ToArray();
+        }
     }
 }

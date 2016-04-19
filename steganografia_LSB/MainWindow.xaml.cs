@@ -45,17 +45,19 @@ namespace steganografia_LSB
 
         private void Insert_OnClick(object sender, RoutedEventArgs e)
         {
-            if (sourceBitmap == null || string.IsNullOrEmpty(this.Information.Text))
+            if (sourceBitmap == null || string.IsNullOrEmpty(this.Information.Text) || string.IsNullOrEmpty(this.Password.Text))
             {
-                MessageBox.Show("Empty text or image", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Empty text or image or password", "", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var encodeText = String.Format("{0} {1}", this.Information.Text.Length, this.Information.Text);
+            var cryptMsg = Convert.ToBase64String(Crypto.Encoder(this.Information.Text, this.Password.Text));
+            var msgLength = String.Format("{0} ", cryptMsg.Length);
+            var encode = BitHelper.JoinArrayBytes(BitHelper.GetBytes(msgLength), BitHelper.GetBytes(cryptMsg));
             
-            if (sourceBitmap.Size.Height * sourceBitmap.Size.Width * 3 / 8 > encodeText.Length)
+            if (sourceBitmap.Size.Height * sourceBitmap.Size.Width * 3 / 8 > encode.Length)
             {
-                changedBitmap = LSB.Encode(encodeText, sourceBitmap);
+                changedBitmap = LSB.EncodeParity(encode, sourceBitmap);
                 changedBitmap.Save(tempPath);
 
                 this.ImageAfter.Source = BitmapFrame.Create(new Uri(tempPath), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
@@ -77,7 +79,14 @@ namespace steganografia_LSB
             if (string.IsNullOrEmpty(path))
                 return;
 
-            var text = LSB.Decode(new Bitmap(path));
+            if (string.IsNullOrEmpty(this.Password.Text))
+            {
+                MessageBox.Show("Insert password", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var decryptedText = LSB.DecodeParity(new Bitmap(path));
+            var text = Crypto.Decoder(Convert.FromBase64String(decryptedText), this.Password.Text);
 
             MessageBox.Show(text, "", MessageBoxButton.OK, MessageBoxImage.Information);
         }

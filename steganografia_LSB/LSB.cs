@@ -49,6 +49,53 @@ namespace steganografia_LSB
             return bitmap;
         }
 
+        public static Bitmap EncodeParity(byte[] encode, Bitmap bitmap)
+        {
+            
+            int i = 0;
+            int j = 8;
+
+            for (int y = 0; y < bitmap.Height; y++)
+            {
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    var pixel = bitmap.GetPixel(x, y);
+
+                    var x1 = BitHelper.GetBit(encode[i], --j);
+                    var x2 = BitHelper.GetBit(encode[i], --j);
+
+                    var R = pixel.R;
+                    var G = pixel.G;
+                    var B = pixel.B;
+
+                    if (x1 != (pixel.R % 2 ^ pixel.B % 2) && x2 == (pixel.G % 2 ^ pixel.B % 2))
+                        R = (byte) (pixel.R ^ 1);
+
+                    if (x1 == (pixel.R % 2 ^ pixel.B % 2) && x2 != (pixel.G % 2 ^ pixel.B % 2))
+                        G = (byte) (pixel.G ^ 1);
+
+                    if (x1 != (pixel.R % 2 ^ pixel.B % 2) && x2 != (pixel.G % 2 ^ pixel.B % 2))
+                        B = (byte) (pixel.B ^ 1);
+                    
+                    bitmap.SetPixel(x, y, Color.FromArgb(R, G, B));
+
+                    if (j == 0)
+                    {
+                        j = 8;
+                        i++;
+                    }
+
+                    if (i == encode.Length)
+                        break;
+                }
+
+                if (i == encode.Length)
+                    break;
+            }
+
+            return bitmap;
+        }
+
         public static string Decode(Bitmap bitmap)
         {
             var information = new StringBuilder();
@@ -70,6 +117,64 @@ namespace steganografia_LSB
                     tmp.Append(pixel.B % 2);
 
                     if (tmp.Length == 9)
+                    {
+                        try
+                        {
+                            information.Append(BitHelper.GetString(new[] { Convert.ToByte(tmp.ToString(), 2) }));
+
+                            if (!isMsg && Convert.ToByte(tmp.ToString(), 2) == 32)
+                            {
+                                isMsg = true;
+                                textLength = Int32.Parse(information.ToString());
+                                information.Clear();
+                            }
+                            tmp.Clear();
+                        }
+                        catch (Exception)
+                        {
+                            // Break on excpetion
+                            isMsg = true;
+                            information.Length = textLength;
+
+                            information.Clear();
+                            information.Append("Error during decoding. Be sure that you have correct image");
+                        }
+                    }
+
+                    if (isMsg && information.Length >= textLength)
+                        break;
+                }
+
+                if (isMsg && information.Length >= textLength)
+                    break;
+
+            }
+
+            return information.ToString();
+        }
+
+        public static string DecodeParity(Bitmap bitmap)
+        {
+            var information = new StringBuilder();
+            bool isMsg = false;
+            int textLength = 0;
+
+            var tmp = new StringBuilder();
+
+            for (int y = 0; y < bitmap.Height; y++)
+            {
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    var pixel = bitmap.GetPixel(x, y);
+
+                    var x1 = (pixel.R % 2) ^ (pixel.B % 2);
+                    var x2 = (pixel.G % 2) ^ (pixel.B % 2);
+
+                    tmp.Append(x1);
+
+                    tmp.Append(x2);
+                    
+                    if (tmp.Length == 8)
                     {
                         try
                         {
