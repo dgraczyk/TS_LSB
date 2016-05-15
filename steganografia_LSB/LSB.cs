@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,11 +51,11 @@ namespace steganografia_LSB
             return bitmap;
         }
 
-        public static Bitmap EncodeParity(byte[] encode, Bitmap bitmap)
+        public static Bitmap EncodeParity(BitArray encode, Bitmap bitmap)
         {
             
             int i = 0;
-            int j = 8;
+            int j = 0;
 
             for (int y = 0; y < bitmap.Height; y++)
             {
@@ -61,8 +63,8 @@ namespace steganografia_LSB
                 {
                     var pixel = bitmap.GetPixel(x, y);
 
-                    var x1 = BitHelper.GetBit(encode[i], --j);
-                    var x2 = BitHelper.GetBit(encode[i], --j);
+                    var x1 = Convert.ToInt32(encode[j++]);
+                    var x2 = Convert.ToInt32(encode[j++]);
 
                     var R = pixel.R;
                     var G = pixel.G;
@@ -78,18 +80,12 @@ namespace steganografia_LSB
                         B = (byte) (pixel.B ^ 1);
                     
                     bitmap.SetPixel(x, y, Color.FromArgb(R, G, B));
-
-                    if (j == 0)
-                    {
-                        j = 8;
-                        i++;
-                    }
-
-                    if (i == encode.Length)
+                    
+                    if (j == encode.Length)
                         break;
                 }
 
-                if (i == encode.Length)
+                if (j == encode.Length)
                     break;
             }
 
@@ -174,13 +170,13 @@ namespace steganografia_LSB
 
                     tmp.Append(x2);
                     
-                    if (tmp.Length == 8)
+                    if (tmp.Length == 40)
                     {
                         try
                         {
-                            information.Append(BitHelper.GetString(new[] { Convert.ToByte(tmp.ToString(), 2) }));
+                            information.Append(BitHelper.GetString(new[] { Convert.ToByte(LSB.Decode1Of5(tmp.ToString()), 2) }));
 
-                            if (!isMsg && Convert.ToByte(tmp.ToString(), 2) == 32)
+                            if (!isMsg && Convert.ToByte(LSB.Decode1Of5(tmp.ToString()), 2) == 32)
                             {
                                 isMsg = true;
                                 textLength = Int32.Parse(information.ToString());
@@ -210,5 +206,85 @@ namespace steganografia_LSB
 
             return information.ToString();
         }
+
+        public static Bitmap PermutateBitmap(Bitmap bitmap, int seed)
+        {
+            var image = new Bitmap(bitmap.Width, bitmap.Height);
+            var random = new Random(seed);
+            var permutate = new List<int>() { 0 };
+            
+            for (int i = 1; i < bitmap.Width*bitmap.Height; i++)
+            {
+                int swap = random.Next(i - 1);
+                permutate.Add(permutate[swap]);
+                permutate[swap] = i;
+            }
+
+            for (int i = 0; i < permutate.Count; i++)
+            {
+                image.SetPixel(i % bitmap.Width, (int)Math.Floor((double)(i / bitmap.Width)),bitmap.GetPixel(permutate.ElementAt(i) % bitmap.Width, (int)Math.Floor((double)(permutate.ElementAt(i) / bitmap.Width))));
+            }
+
+            return image;
+        }
+
+        public static Bitmap UnpermutateBitmap(Bitmap bitmap, int seed)
+        {
+            var image = new Bitmap(bitmap.Width, bitmap.Height);
+            var random = new Random(seed);
+            var permutate = new List<int>(){0};
+
+            for (int i = 1; i < bitmap.Width * bitmap.Height; i++)
+            {
+                int swap = random.Next(i - 1);
+                permutate.Add(permutate[swap]);
+                permutate[swap] = i;
+            }
+
+            for (int i = 0; i < permutate.Count; i++)
+            {
+                image.SetPixel(permutate.ElementAt(i) % bitmap.Width, (int)Math.Floor((double)(permutate.ElementAt(i) / bitmap.Width)),bitmap.GetPixel(i % bitmap.Width, (int)Math.Floor((double)(i / bitmap.Width))));
+            }
+
+            return image;
+        }
+
+        public static BitArray Encode1Of5(byte[] message)
+        {
+            var encode = new BitArray(message.Length * 8 * 5);
+            var pos = 0;
+
+            foreach (var t in message)
+            {
+                var tmp = new BitArray(BitConverter.GetBytes(t).ToArray());
+                for (int j = 0; j < 8; j++)
+                {
+                    for (int k = 0; k < 5; k++)
+                    {
+                        encode.Set(pos++, tmp[j]);
+                    }
+                }
+            }
+
+            return encode;
+        }
+
+        public static string Decode1Of5(string message)
+        {
+            var tmp = new StringBuilder();
+            
+            for (int i = 0; i < message.Length; i += 5)
+            {
+                tmp.Insert(0,message.Substring(i, 5).Count(x => x == '1') > 2 ? "1" : "0");
+                
+            }
+
+            return tmp.ToString();
+        }
+
+       
      }
+
+
+
 }

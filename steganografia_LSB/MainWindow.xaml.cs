@@ -45,19 +45,28 @@ namespace steganografia_LSB
 
         private void Insert_OnClick(object sender, RoutedEventArgs e)
         {
-            if (sourceBitmap == null || string.IsNullOrEmpty(this.Information.Text) || string.IsNullOrEmpty(this.Password.Text))
+            if (sourceBitmap == null || string.IsNullOrEmpty(this.Information.Text) || string.IsNullOrEmpty(this.Password.Text) || string.IsNullOrEmpty(this.Key.Text))
             {
-                MessageBox.Show("Empty text or image or password", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Empty text or image or password or key", "", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
+            // szyfrowanie
             var cryptMsg = Convert.ToBase64String(Crypto.Encoder(this.Information.Text, this.Password.Text));
             var msgLength = String.Format("{0} ", cryptMsg.Length);
             var encode = BitHelper.JoinArrayBytes(BitHelper.GetBytes(msgLength), BitHelper.GetBytes(cryptMsg));
-            
+
+            // kodowanie 1 z 5
+            var correctCode = LSB.Encode1Of5(encode);
+            // permutacja
+            var permute = LSB.PermutateBitmap(sourceBitmap, Int32.Parse(Key.Text));
+
             if (sourceBitmap.Size.Height * sourceBitmap.Size.Width * 3 / 8 > encode.Length)
             {
-                changedBitmap = LSB.EncodeParity(encode, sourceBitmap);
+                // kodowanie parzystoscia
+                var tmp = LSB.EncodeParity(correctCode, permute);
+                // odwrotna permutacja
+                changedBitmap = LSB.UnpermutateBitmap(tmp, Int32.Parse(Key.Text));
                 changedBitmap.Save(tempPath);
 
                 this.ImageAfter.Source = BitmapFrame.Create(new Uri(tempPath), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
@@ -79,13 +88,16 @@ namespace steganografia_LSB
             if (string.IsNullOrEmpty(path))
                 return;
 
-            if (string.IsNullOrEmpty(this.Password.Text))
+            if (string.IsNullOrEmpty(this.Password.Text) || string.IsNullOrEmpty(this.Key.Text))
             {
-                MessageBox.Show("Insert password", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Insert password or key", "", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-
-            var decryptedText = LSB.DecodeParity(new Bitmap(path));
+            // permutacja
+            var permutate = LSB.PermutateBitmap(new Bitmap(path), Int32.Parse(Key.Text));
+            // odkodowanie
+            var decryptedText = LSB.DecodeParity(permutate);
+            // odszyfrowanie
             var text = Crypto.Decoder(Convert.FromBase64String(decryptedText), this.Password.Text);
 
             MessageBox.Show(text, "", MessageBoxButton.OK, MessageBoxImage.Information);

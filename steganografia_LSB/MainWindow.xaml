@@ -23,6 +23,8 @@
                 <TextBox TextWrapping="Wrap"  AcceptsReturn="True"  Name="Information" HorizontalAlignment="Stretch" MinWidth="300" MinHeight="120" MaxWidth="300" Margin="10,25,10,0" ></TextBox>
                 <Label Content="Hasło"  HorizontalAlignment="Left" Margin="10,15" />
                 <TextBox  Name="Password" HorizontalAlignment="Left" Height="50"  TextWrapping="Wrap"   MinWidth="300" MaxWidth="300" Margin="10,0,10,0"/>
+                <Label Content="Key"  HorizontalAlignment="Left" Margin="10,15" />
+                <TextBox  Name="Key" HorizontalAlignment="Left" Height="50"  TextWrapping="Wrap"   MinWidth="300" MaxWidth="300" Margin="10,0,10,0"/>
                 <Button Click="Insert_OnClick" Name="Insert" Content="Insert" Margin="10,25,10,0" MinWidth="100" Height="34" VerticalAlignment="Center" ></Button>
             </StackPanel>
             <Image Grid.Column="1" Grid.Row="0" MaxWidth="500" MaxHeight="500" Name="ImageBefore" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" ></Image>
